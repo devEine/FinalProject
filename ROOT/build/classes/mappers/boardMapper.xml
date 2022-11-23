@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.madforgolf.mapper.BoardMapper">
+	
+	<select id="getUser_name" resultType="String">
+		select user_name 
+		from mfg_member 
+		where user_id = #{user_id}
+	</select>
+	
+	
+	<insert id="boardWrite">
+		insert into mfg_board(board_category,user_id,user_name,title,content,content_img,content_img2,content_img3) 
+		values(#{board_category},#{user_id},#{user_name},#{title},#{content},#{content_img},#{content_img2},#{content_img3})
+	</insert>
+
+
+	<!-- 글내용 -->
+	<select id="getBoard" resultType="com.madforgolf.domain.BoardVO">		
+		select b.board_num, b.board_category, b.user_id, m.user_name, b.title, b.content, b.content_img, b.content_img2, b.content_img3, b.write_date, b.readcount
+		from mfg_board b join mfg_member m
+		on b.user_id = m.user_id
+		where b.board_num = #{board_num};
+	</select>
+	
+	<!-- 글수정 -->	 
+	<update id="updateBoard">
+	  update mfg_board 
+	  set board_category=#{board_category}, title=#{title},content=#{content},content_img=#{content_img},content_img2=#{content_img2},content_img3=#{content_img3} 
+	  where board_num=#{board_num}	   
+	</update>
+	
+	<!-- 글 조회수 1증가 -->
+	<update id="updateReadCount">
+		update mfg_board
+		set readcount = readcount+1
+		where board_num = #{board_num}
+	</update>
+	
+	<!-- 글삭제 -->
+	<delete id="deleteBoard">
+		delete from mfg_board
+		where board_num=#{board_num}
+	</delete>
+
+
+	<select id="listBoardAll" resultType="BoardVO" resultMap="vo">
+		select * from mfg_board 
+		where board_num &gt; 0 
+		order by board_num desc
+	</select>
+	
+	
+	<!-- content가 TEXT datetype일 때 아래와 같이 명시 -->
+	<resultMap type="com.madforgolf.domain.BoardVO" id="vo">
+		<result property="content" column="content"/>
+	</resultMap>
+	
+                                
+		
+	<select id="listPage" resultType="BoardVO">
+	  select * from mfg_board
+	  order by board_num desc, write_date desc 
+	  limit #{page},10
+	</select>
+	
+	
+	<select id="listPage2" resultType="BoardVO">
+		select * from mfg_board 
+		order by board_num desc, write_date desc 
+		limit #{page},#{pageSize}
+	</select>
+	
+	
+	
+	<select id="listPage3" resultType="BoardVO">
+		select * from mfg_board 
+		order by board_num desc, write_date desc 
+		limit #{pageStart},#{perPageNum}
+	</select>
+	
+	
+	
+	<select id="listLikePage" resultType="BoardVO">
+		select * from mfg_board 
+		order by readcount desc 
+		limit #{pageStart},#{perPageNum}
+	</select>
+	
+	
+	
+	<select id="listCategory" resultType="BoardVO">
+		select * from mfg_board 
+		where board_category = #{board_category} 
+		order by board_num desc, write_date desc 
+		limit #{page},#{perPageNum}
+	</select>
+
+	
+	
+	<select id="listLikeCategory" resultType="BoardVO">
+		select * from mfg_board 
+		where board_category = #{board_category} 
+		order by readcount desc 
+		limit #{page},#{perPageNum}
+	</select>
+
+
+
+	<!-- 댓글쓰기 -->
+	<insert id="insertReply">
+		insert into mfg_reply(board_num,user_id,reply_content,reply_updatedate) 
+		values(#{board_num},#{user_id},#{reply_content},now()) 
+	</insert>
+	
+	<!-- 댓글출력 -->
+	<select id="listReply" resultType="com.madforgolf.domain.ReplyVO">
+		select r.reply_num, r.board_num, r.reply_content, r.user_id, m.user_name, r.reply_date, r.reply_updatedate
+		from mfg_reply r join mfg_member m 
+		on r.user_id = m.user_id 
+		where board_num = #{board_num} 
+		order by reply_num desc, reply_date desc 
+		limit #{pageVO.pageStart},#{pageVO.perPageNum}
+	</select>
+	
+	<!-- 댓글삭제 -->
+	<delete id="deleteReply">
+		delete from mfg_reply 
+		where reply_num = #{reply_num} 
+	</delete>
+	
+	<!-- 댓글수정 -->
+	<update id="updateReply">
+		update mfg_reply
+	 	set reply_content=#{reply_content}, reply_updatedate=now()  
+	 	where reply_num=#{reply_num}	
+	</update>
+	
+	<!-- 댓글 수 -->
+	<select id="replyCnt" resultType="Integer">
+		select count(*) 
+		from mfg_reply 
+		where board_num = #{board_num} 
+	</select>
+
+</mapper>
